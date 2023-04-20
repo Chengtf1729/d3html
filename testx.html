@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<!-- saved from url=(0040)http://127.0.0.1:5500/d3BubbleLearn.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Basic Bubble Chart</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+    /* custom css styles will go here */
+
+    </style>
+</head>
+<body>
+
+<script src="./testx_files/d3.v7.min.js.download"></script>
+<script>
+function wrap(d) {
+    var text = d3.select(this),
+      width = d.r * 2,
+      x = d.x,
+      y = d.y,
+      words = text.text().split(/\s+/).reverse(),
+      word,
+      line = [],
+      lineNumber = 0,
+      lineHeight = 1.1,
+      tspan = text.text(null).append("tspan").attr("x", x).attr("y", y);
+    while (word = words.pop()) {
+      line.push(word);
+      tspan.text(line.join(" "));
+      if (tspan.node().getComputedTextLength() > width) {
+        line.pop();
+        tspan.text(line.join(" "));
+        line = [word];
+        tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + "em").text(word);
+      }
+    }
+}
+
+</script>
+<script>
+var diameter = 500, //max size of the bubbles
+    format   = d3.format(",d"),
+    color    = d3.scaleOrdinal(d3.schemeCategory10);
+
+const fillColour = d3.scaleOrdinal()
+        .domain(["1", "2", "3", "4", "5"])
+        .range(["#0074D9", "#7FDBFF", "#39CCCC", "#3D9970", "#AAAAAA"]);
+
+    //more color options: https://github.com/d3/d3-scale-chromatic
+
+var bubble = d3.pack()
+    .size([diameter, diameter])
+    .padding(1.5);
+
+var svg = d3.select("body")
+    .append("svg")
+    .attr("width", diameter)
+    .attr("height", diameter)
+    .attr("class", "bubble");
+
+// retrieve data sets
+
+d3.csv("BubbleLearn.csv").then(function(data){
+
+
+    //convert numerical values from strings to numbers
+    data = data.map(function(d){ d.value = +d["Amount"]; return d; });
+
+    //Sets up a hierarchy of data object
+    var root = d3.hierarchy({children:data})
+      .sum(function(d) { return d.value; })
+      .sort(function(a, b) { return b.value - a.value; });
+
+    //Once we have hierarchal data, run bubble generator
+    bubble(root);
+
+    //setup the chart
+    var bubbles = svg.selectAll(".bubble")
+        .data(root.children)
+        .enter();
+
+    //create the bubbles
+    bubbles.append('a')
+        .attr("xlink:href", function(d) {
+              return d.data.url;
+            })  
+        .append('circle')
+        .attr("class", "circle")
+        .attr("r", function(d){ return d.r; })
+        .attr("cx", function(d){ return d.x; })
+        .attr("cy", function(d){ return d.y; })
+        .style("fill", function(d) { 
+            return fillColour(d.data.GroupID); });
+
+    //format the text for each bubble
+    bubbles.append("text")
+    .attr("x", function(d){ return d.x; })
+    .attr("y", function(d){ return d.y + 5; })
+    .attr("text-anchor", "middle")
+    .text(function(d){ 
+
+        //Only show text if bubble's radius is more than 25
+        if(d.data.Amount > 20){
+
+            return d.data["Fruit"]; 
+
+        } else {
+
+            //bubble has a radius smaller than 25, don't show label
+            return "";
+        }
+        
+    })
+    .style("fill","white")
+    .style("font-family", "Helvetica Neue, Helvetica, Arial, san-serif")
+    .style("font-size", "12px")
+    //add this wrap function to wrap long text
+    .each(wrap);
+});
+
+
+</script><svg width="500" height="500" class="bubble"><a href="d3bubble.html"><circle class="circle" r="88.05211784016564" cx="238.80134789209734" cy="254.51652015139732" style="fill: rgb(170, 170, 170);"></circle></a><a href="http://www.google.com"><circle class="circle" r="83.01633283015748" cx="411.35199024117344" cy="254.51652015139732" style="fill: rgb(0, 116, 217);"></circle></a><a href="http://www.bca.gov.sg"><circle class="circle" r="80.38021862860299" cx="329.9620375417583" cy="397.9064624004724" style="fill: rgb(127, 219, 255);"></circle></a><a href="http://www.google.com"><circle class="circle" r="80.38021862860299" cx="329.9620375417583" cy="111.1265779023222" style="fill: rgb(0, 116, 217);"></circle></a><a href="http://www.google.com"><circle class="circle" r="79.02919436442004" cx="169.39544906709637" cy="100.90507510343863" style="fill: rgb(61, 153, 112);"></circle></a><a href="http://www.google.com"><circle class="circle" r="73.3767648668047" cx="174.8567907186278" cy="404.35347075237405" style="fill: rgb(57, 204, 204);"></circle></a><text x="238.80134789209734" y="259.51652015139734" text-anchor="middle" style="fill: white; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, san-serif; font-size: 12px;"><tspan x="238.80134789209734" y="254.51652015139732">Strawberry and Durians and</tspan><tspan x="238.80134789209734" y="254.51652015139732" dy="1.1em">Many others</tspan></text><text x="411.35199024117344" y="259.51652015139734" text-anchor="middle" style="fill: white; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, san-serif; font-size: 12px;"><tspan x="411.35199024117344" y="254.51652015139732">Apple</tspan></text><text x="329.9620375417583" y="402.9064624004724" text-anchor="middle" style="fill: white; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, san-serif; font-size: 12px;"><tspan x="329.9620375417583" y="397.9064624004724">Pear Orange</tspan></text><text x="329.9620375417583" y="116.1265779023222" text-anchor="middle" style="fill: white; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, san-serif; font-size: 12px;"><tspan x="329.9620375417583" y="111.1265779023222">AppleJuice</tspan></text><text x="169.39544906709637" y="105.90507510343863" text-anchor="middle" style="fill: white; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, san-serif; font-size: 12px;"><tspan x="169.39544906709637" y="100.90507510343863">Grapes</tspan></text><text x="174.8567907186278" y="409.35347075237405" text-anchor="middle" style="fill: white; font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, san-serif; font-size: 12px;"><tspan x="174.8567907186278" y="404.35347075237405">Banana</tspan></text></svg>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+
+</body></html>
